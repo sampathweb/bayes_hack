@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="description" content="Bayes Impact - Donors Choose"/>
+    <meta name="viewport" content="width=1000, initial-scale=1.0, maximum-scale=1.0">
+
+    <title>Dashboard</title>
+    <link href="{{url_for('static', filename='public/css/common.css')}}" rel="stylesheet">
+    {% block head %}{% endblock head %}
+  </head>
+  <body>
+    <div class="wrapper">
+        <!-- Navigation -->
+        <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="{{url_for('main.index')}}">Bayes Hack - Donor's Choose</a>
+            </div>
+            <!-- /.navbar-header -->
+            <ul class="nav navbar-top-links navbar-right">
+              <li class="divider"></li>
+              <li><a href="">Slides</a>
+              <li class="divider"></li>
+              <li><a href="">Github</a>
+              <li class="divider"></li>
+              </li>
+                <!-- /.dropdown -->
+            </ul>
+            <!-- /.navbar-top-links -->
+            <div class="navbar-default sidebar" role="navigation">
+                <div class="sidebar-nav navbar-collapse">
+                    <ul class="nav" id="side-menu">
+                        <li>
+                            <a class="active" href="{{url_for('main.index')}}"><i class="fa fa-dashboard fa-fw"></i> Dashboard Home</a>
+                        </li>
+                        <li>
+                            <a href="#"><i class="fa fa-bar-chart-o fa-fw"></i> Charts<span class="fa arrow"></span></a>
+                            <ul class="nav nav-second-level">
+                                <li>
+                                    <a href="">Viz1</a>
+                                </li>
+                                <li>
+                                    <a href="">Viz2</a>
+                                </li>
+                            </ul>
+                            <!-- /.nav-second-level -->
+                        </li>
+                    </ul>
+                </div>
+                <!-- /.sidebar-collapse -->
+            </div>
+            <!-- /.navbar-static-side -->
+        </nav>
+      <div id="page-wrapper">
+        {% block body %}{% endblock body %}
+      </div>
+    </div>
+    <footer>
+      <div class="container">
+        <div class="row">
+        </div>
+      </div>
+    </footer>
+    <script src="{{url_for('static', filename='public/js/common.js')}}"></script>
+    {% block js %}{% endblock js %}
+  </body>
+</html>

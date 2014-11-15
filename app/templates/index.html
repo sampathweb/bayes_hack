@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block body %}
+
+    <div id="viz"></div>
+{% endblock body %}
+
+{% block js %}
+  <script type="text/javascript">
+  // parse a spec and create a visualization view
+      $(function() {
+        chart_data = {{mpld3_data | safe}};
+        mpld3.draw_figure("viz", chart_data);
+    });
+  </script>
+{% endblock js %}
