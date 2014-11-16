@@ -1,5 +1,6 @@
 #! ../env/bin/python
 from flask import Flask, render_template, redirect, url_for, request, send_from_directory, g
+from sqlalchemy import create_engine
 
 import matplotlib
 matplotlib.use('agg')
@@ -33,8 +34,7 @@ def create_app(object_name, env):
     def before_request():
         g.app_server = app.config['APP_SERVER']
         if 'db_engine' not in 'g':
-            pass
-            # g.db_engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
+            g.db_engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
 
     # register our blueprints
     from app.blueprints import main
