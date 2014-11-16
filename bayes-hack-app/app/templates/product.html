@@ -1,93 +1,256 @@
 {% extends 'base.html' %}
 {% block body %}
-  	<BR><BR>
+<div class="row">
+	<h1 class="page-header">Funding prediction</h1>
+</div>
+<div class="row">
 	<div class="col-lg-6">
-	    	<div class="form-group">
+	    	<div id="form-group" class="form-group">
 				
-				<label>County </label>
-				<select id="county" class="form-control">
-	                {% for item in countylist %}
+
+	           	<div class="panel panel-default">
+                        <div class="panel-heading">
+                            Geo Options
+                        </div>
+                        <div class="panel-body">
+                            <div class="col-sm-5">
+						    	School State
+								<select id="school_state" class="form-control" style="display:inline-block; width:40%">
+					                	<option value=""></option>
+					                {% for item in school_state %}
+						                <option value="{{item}}">{{item}}</option>
+					                {% endfor %}
+					            </select>
+						    </div>
+						    <div class="col-sm-7">
+						    	Metro Area Type
+								<select id="school_metro" class="form-control" style="display:inline-block; width:60%">
+					                <option value=""></option>
+					                {% for item in school_metro %}
+						                <option value="{{item.value}}">{{item.name}}</option>
+					                {% endfor %}
+					            </select>
+			            	</div>
+                        </div>
+                </div>
+				<div class="panel panel-default">
+                        <div class="panel-heading">
+                            School Options
+                        </div>
+                        <div class="panel-body">
+                            <div class="col-sm-6">
+						    	<div class="checkbox"><label><input type="checkbox" id="school_charter" value="">Charter School</label></div>
+								<div class="checkbox"><label><input type="checkbox" id="school_magnet" value="">Magnet School</label></div>
+								<div class="checkbox"><label><input type="checkbox" id="school_year_round" value="">Operates Year-Round</label></div>
+						    </div>
+						    <div class="col-sm-6">
+						    	<div class="checkbox"><label><input type="checkbox" id="school_nlns" value="">NLNS</label></div>
+								<div class="checkbox"><label><input type="checkbox" id="school_kipp" value="">KIPP</label></div>
+								<div class="checkbox"><label><input type="checkbox" id="school_charter_ready_promise" value="">charter_ready_promise</label></div>
+			            	</div>
+                        </div>
+                </div>
+				<div class="panel panel-default">
+                        <div class="panel-heading">
+                            Teacher Info
+                        </div>
+                        <div class="panel-body">
+                            <div class="col-sm-5" style="margin-top: 15px;">
+						    	Designation
+							    <select id="teacher_prefix" class="form-control" style="display:inline-block; width:50%">
+						            <option value=""></option>
+						            {% for item in teacher_prefix %}
+						                <option value="{{item}}">{{item}}</option>
+					                {% endfor %}
+					            </select>
+						    </div>
+						    <div class="col-sm-7">
+						    	<div class="checkbox"><label><input type="checkbox" id="teacher_teach_for_america" value="">Teacher belongs to Teach for America</label></div>
+			            		<div class="checkbox"><label><input type="checkbox" id="teacher_ny_teaching_fellow" value="">Teacher is a NY teaching fellow</label></div>
+			            	</div>
+                        </div>
+                </div>
+
+                <div class="panel panel-default">
+                        <div class="panel-heading">
+                            Class Options
+                        </div>
+                        <div class="panel-body">
+                            <div class="col-sm-6">
+						    	Primary Focus Subject
+								<select id="primary_focus_subject" class="form-control">
+						            <option value=""></option>
+						            {% for item in primary_focus_subject %}
+						                <option value="{{item}}">{{item}}</option>
+					                {% endfor %}
+					            </select>
+						    </div>
+						    <div class="col-sm-6">
+						    	Primary Focus Area
+								<select id="primary_focus_area" class="form-control" >
+						            <option value=""></option>
+						            {% for item in primary_focus_area %}
+						                <option value="{{item}}">{{item}}</option>
+					                {% endfor %}
+					            </select>
+			            	</div>
+			            	<div class="col-sm-12">
+			            		<BR>
+			            		Grade Level
+								<select id="grade_level" class="form-control" style="display:inline-block; width:50%">
+						            <option value=""></option>
+						            {% for item in grade_level %}
+					                	<option value="{{item}}">{{item}}</option>
+				                	{% endfor %}
+				            	</select>
+				            </div>
+                        </div>
+                </div>
+                <div class="panel panel-default">
+                        <div class="panel-heading">
+                            Teacher's Request
+                        </div>
+                        <div class="panel-body">
+							Requested Resource Type
+							<select id="resource_type" class="form-control" style="display:inline-block; width:50%">
+							    <option value=""></option>
+						            {% for item in resource_type %}
+							        <option value="{{item}}">{{item}}</option>
+							    {% endfor %}
+							</select>
+							<BR><BR>
+							Product requested:
+			  				<input id="product" class="form-control" style="display:inline-block; width:60%">
+			  				<button class="btn btn-default" onclick="table_add_item();">Add Product</button>
+			  				<div class="table-responsive">
+			                    <table id="items_table" class="table">
+			                        <thead>
+			                            <tr>
+			                                <th>#</th>
+			                                <th>Product Name</th>
+			                                <th>Price</th>
+			                                <th>Remove</th>
+			                            </tr>
+			                        </thead>
+			                        <tbody>
+			                        </tbody>
+			                    </table>
+			                    <BR><BR>
+			                </div>
+	                   	</div>
+                </div>
+
+				<label>Poverty Level ??? </label>
+				<select id="poverty_level" class="form-control" style="display:inline-block; width:50%">
+		            <option value=""></option>
+					{% for item in poverty_level %}
 		                <option value="{{item.value}}">{{item.label}}</option>
 	                {% endfor %}
-	            </select>
-	            <BR><BR>
+	            </select><BR><BR>
 
-				<label for="product">Product: </label>
-  				<input id="product" class="form-control" style="display:inline-block; width:60%">
-  				<button class="btn btn-default">Add Product</button>
-  				<div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Product Name</th>
-                                <th>Price</th>
-                                <th>Remove</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>Apple Ipad</td>
-                                <td>$129</td>
-                                <td>X</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-  				<BR><BR><BR>
-	            
-	            
-	           	
-	            <button type="reset" class="btn btn-default">Reset</button>
+            
+				
+	         <BR><BR>&nbsp;
 	        </div>
 		
     </div>
+    <div class="col-lg-6">
+    	<div id="outcome">
 
+    	</div>
+    </div>
+</div>
     <div id="viz"></div>
 {% endblock body %}
 
 {% block js %}
 	<script src="//code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
-<link rel="stylesheet" href="//code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
 
   <script type="text/javascript">
   // parse a spec and create a visualization view
-      var localization = {{ localization|safe }};
+      //var localization = {{ localization|safe }};
+      
+      function delete_item(number) {
+      	table_items.splice(number-1, 1);
+      	$.each(table_items, function(id, entry) {
+      		entry.number = id + 1;
+      	});
+      	refresh_table();
+      }
+      function refresh_table() {
+      	$("#items_table").html("<thead><tr><th>#</th><th>Product Name</th><th>Price</th><th>Remove</th></tr></thead><tbody></tbody>");
+      	$.each(table_items, function(id, item) {
+      		$("#items_table").append("<tr class='item'><td class='number'>" + item.number + "</td><td class='name'>" + item.name + "</td><td class='price'>$" + item.price + "</td><td class='remove'><a href='#' onclick='delete_item(" + item.number + ");'>X</a></td></tr>");
+      	});
+      }
+      function table_add_item() {
+      	var added = false;
+      	var product_name = $("#product").val();
+      	console.log('add ', product_name, search_results);
+      	$.each(search_results, function(id, item) {
+      		if (item.item_prefix == product_name && ! added) {
+      			table_items.push({"number": table_items.length + 1, "price":(item.item_quantity * item.item_unit_price), "name":item.item_name});
+      			refresh_table();
+      			added = true;
+      			$("#product").val('');
+      		}
+      	});
+      	//var current_items = $("#items_table").find("tr.item");
+      	
+      	//$("#items_table").append("<tr class='item'><td class='number'>" + current_items.length() + "</td><td class='name'>Ipad</td><td class='price'>$129</td><td class='remove'>X</td></tr>");
+      }
 
+      var table_items = [];
+      var item_autocomplete = [];
+      var search_results = [];
+      var submit_data = {};
       $(function() {
+		$("#product").autocomplete({ source: item_autocomplete });
+		$("#product").keypress(function(e) {
+			var itemtxt = $("#product").val() + String.fromCharCode(e.keyCode);
+			console.log(itemtxt);
+			$.get( "/get_products?item_name=" + itemtxt, function( data ) {
+			  console.log(data);
+			  item_autocomplete = [];
+			  $.each(data.items, function(i, item) {
+			  	item_autocomplete.push(item.item_name);
+			  	item.item_name = item.item_name.replace(/(\r\n|\n|\r)/gm,"");
+			  	item.item_prefix = item.item_prefix.replace(/(\r\n|\n|\r)/gm,"");
 
+			  });
+			  search_results = data.items;
+			  
+			  $("#product").autocomplete({ source: item_autocomplete });
+			  $("#product").autocomplete("search");
+			});
+		});
 
-        	var availableTags = [
-		      "ActionScript",
-		      "AppleScript",
-		      "Asp",
-		      "BASIC",
-		      "C",
-		      "C++",
-		      "Clojure",
-		      "COBOL",
-		      "ColdFusion",
-		      "Erlang",
-		      "Fortran",
-		      "Groovy",
-		      "Haskell",
-		      "Java",
-		      "JavaScript",
-		      "Lisp",
-		      "Perl",
-		      "PHP",
-		      "Python",
-		      "Ruby",
-		      "Scala",
-		      "Scheme"
-		    ];
-		    $( "#product" ).autocomplete({
-		      source: availableTags
-		    });
+		$("#form-group").on('change', function(e) {
+			
+			var value = $("#" + e.target.id).val() || $("#" + e.target.id).prop('checked');
+			console.log(e, e.target.id, value);
+			if (typeof value != "undefined" && value != "") {
+				submit_data[e.target.id] = value;
+			} else {
+				delete submit_data[e.target.id];
+			}
+			console.log(submit_data);
 
+			$.post( "/check_prediction", submit_data)
+			  .done(function( data ) {
+			  	console.log('response', data);
+			  	$("#outcome").html('');
+			  	var color = 'green';
+			  	if (data.res < 60) color = 'yellow';
+			  	if (data.res < 30) color = 'red';
 
+			  	$("#outcome").append("<div class='panel panel-" + color + "'><div class='panel-heading'><div class='row'><div class='col-xs-3'><i class='fa fa-shopping-cart fa-5x'></i></div>\
+                        <div class='col-xs-9 text-right'><div class='huge'>" + data.res + "</div><div>Chance of funding your project</div></div></div></div>\
+                        <a href='#'><div class='panel-footer'><span class='pull-left'>More...</span><span class='pull-right'><i class='fa fa-arrow-circle-right'></i></span><div class='clearfix'></div></div></a></div>")
 
-    });
+			});
+		});
+	  });
   </script>
 {% endblock js %}

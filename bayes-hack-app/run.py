@@ -6,8 +6,4 @@ def run_app():
     app = create_app('app.settings.%sConfig' % env.capitalize(), env)
     return app
 
-<<<<<<< HEAD
 app = run_app()
-=======
-app = run_app()
->>>>>>> 9756699a294b68a8764d1751d0678fbfe5fa70be

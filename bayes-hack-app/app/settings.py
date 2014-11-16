@@ -8,4 +8,4 @@ class Config(object):
 class HackConfig(Config):
     APP_SERVER = 'HACK'
     SECRET_KEY = 'HACK - tis is secret?'
-    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:bayeshack@bayesimpact.soumet.com/bayes'
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:bayeshack@localhost/bayes'
