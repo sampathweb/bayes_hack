@@ -13,8 +13,10 @@ def load_model():
     db_engine = create_engine(SQLALCHEMY_DATABASE_URI)
     zz = pred_model.project_data(db_engine)
     xx, yy, idx, enc, fwd, bkw = pred_model.make_data_set(zz)
+    ny_model = None
     # ny_model = pred_model.uncan('ny-model.pkl')
     ca_model = pred_model.uncan('ca-model.pkl')
+    tx_model = None
     # tx_model = pred_model.uncan('tx-model.pkl')
     print "***", xx.shape
     return zz, xx, yy, xx.shape[1], fwd, ny_model, ca_model, tx_model

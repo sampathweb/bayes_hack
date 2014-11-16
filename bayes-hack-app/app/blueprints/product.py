@@ -6,6 +6,7 @@ import mpld3
 import seaborn as sns  # imported for Styling matplotlib plots
 import json
 import numpy as np
+from pred_model import prob_plot
 
 db = mysql.connector.connect(user='root', password='bayeshack',host='bayesimpact.soumet.com', database='bayes')
 
@@ -113,6 +114,8 @@ def check_prediction():
         pred_prob = g.tx_model.predict(pred_data)
 
     print pred_data
-    mpld3_data = mpld3.fig_to_dict(prob_plot().get_figure())
+    print pred_prob
+    # mpld3_data = mpld3.fig_to_dict(prob_plot(g.xx).get_figure())
 
-    return jsonify({"res":pred_prob, "input":data, mpld3_data: json.dumps(mpld3_data)})
+    return jsonify({"res":int(pred_prob * 100), "input":data})
+    # , mpld3_data: json.dumps(mpld3_data)})

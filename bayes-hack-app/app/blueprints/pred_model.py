@@ -102,14 +102,14 @@ features = [
     # u'funding_status', u'date_posted', u'date_completed', u'date_thank_you_packet_mailed', u'date_expiration'
 ]
 
-def pre_screen(zz, state='NY', limit=None):
+def pre_screen(zz, state='CA', limit=None):
 #    if state is not None:
 #        by_state = zz[zz.school_state==state]
 #    else:
 #        by_state = zz
 #    if limit is not None:
 #        by_state = by_state[:limit]
-    by_state=zz[zz.school_state='NY']
+    by_state=zz[zz.school_state=='CA']
     return by_state[features].dropna(how='any').copy()
 
 def featureize(zz):
@@ -208,7 +208,7 @@ def featureize(zz):
     return xx, encode, forward_transform, reverse_transform
 
 def make_data_set(zz, state=None):
-    ww = pre_screen(zz, state, 1000)
+    ww = pre_screen(zz)
     xx, enc, fwd, bkw = featureize(ww)
     yy_all = funded_or_not(zz)
     # Pull out just the ones that are included
