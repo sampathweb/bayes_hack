@@ -1,0 +1,7 @@
+env/
+.webassets-cache/
+*.pyc
+*.conf
+*.csv
+*.out
+*.pid
