@@ -4,7 +4,11 @@ import logging
 logging.basicConfig(stream=sys.stderr)
 
 sys.path.insert(0, "/usr/local/miniconda/bin")
+<<<<<<< HEAD
 sys.path.insert(0,"/data/bayes/bayes_hack/bayes-hack-app/")
+=======
+sys.path.insert(0, "/data/bayes/bayes_hack/bayes-hack-app/")
+>>>>>>> 9756699a294b68a8764d1751d0678fbfe5fa70be
 
 from app import create_app
 

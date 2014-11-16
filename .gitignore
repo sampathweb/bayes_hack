@@ -1,0 +1,8 @@
+env/
+.webassets-cache/
+*.pyc
+*.conf
+*.csv
+*.out
+*.pid
+.ipynb_checkpoints/

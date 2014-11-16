@@ -4,14 +4,13 @@
 	<div class="col-lg-6">
 	    	<div class="form-group">
 				
-				<label for="state">State </label>
-				<select id="state" class="form-control">
-	                {% for item in stateslist %}
+				<label>County </label>
+				<select id="county" class="form-control">
+	                {% for item in countylist %}
 		                <option value="{{item.value}}">{{item.label}}</option>
 	                {% endfor %}
 	            </select>
 	            <BR><BR>
-
 
 				<label for="product">Product: </label>
   				<input id="product" class="form-control" style="display:inline-block; width:60%">
@@ -29,8 +28,8 @@
                         <tbody>
                             <tr>
                                 <td>1</td>
-                                <td>Mark</td>
-                                <td>Otto</td>
+                                <td>Apple Ipad</td>
+                                <td>$129</td>
                                 <td>X</td>
                             </tr>
                         </tbody>
@@ -54,7 +53,11 @@
 
   <script type="text/javascript">
   // parse a spec and create a visualization view
+      var localization = {{ localization|safe }};
+
       $(function() {
+
+
         	var availableTags = [
 		      "ActionScript",
 		      "AppleScript",
