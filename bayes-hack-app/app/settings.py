@@ -6,6 +6,7 @@ class Config(object):
 
 
 class HackConfig(Config):
+    DEBUG = True
     APP_SERVER = 'HACK'
     SECRET_KEY = 'HACK - tis is secret?'
     SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:bayeshack@localhost/bayes'
