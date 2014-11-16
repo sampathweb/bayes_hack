@@ -4,10 +4,6 @@ import pandas as pd
 import pylab as pl
 from mpl_toolkits.basemap import Basemap
 
-# import MySQLdb as mdb
-
-# con = mdb.connect('bayesimpact.soumet.com', 'root', 'bayeshack', 'bayes') #host, user, password, #database
-
 def lat_lon():
     # Build sql query
     connection = g.db_engine.connect()

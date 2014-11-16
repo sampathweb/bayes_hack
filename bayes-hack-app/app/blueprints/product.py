@@ -1,10 +1,10 @@
-from flask import Blueprint, render_template, g, request, jsonify 
+from flask import Blueprint, render_template, g, request, jsonify
 import json
 import mysql.connector
 from random import randint
 
-db = mysql.connector.connect(user='root', password='bayeshack',host='127.0.0.1', database='bayes')
-	
+db = mysql.connector.connect(user='root', password='bayeshack',host='bayesimpact.soumet.com', database='bayes')
+
 product = Blueprint('product', __name__)
 
 
@@ -13,7 +13,7 @@ product = Blueprint('product', __name__)
 def get_products():
 	cursor = db.cursor(True)
 	query = ("SELECT item, item_name, item_unit_price, item_quantity from items_index where item_name like '%s%%' LIMIT 8;") % request.args.get('item_name')
-	
+
 	cursor.execute(query)
 	results = { "items" : []}
 	for item, item_name, item_unit_price, item_quantity in cursor:
@@ -26,7 +26,7 @@ def get_products():
 			item_quantity = 1
 
 		results["items"].append(
-			{"item_prefix":str(item.encode('ascii', 'ignore')), 
+			{"item_prefix":str(item.encode('ascii', 'ignore')),
 				"item_name":str(item_name.encode('ascii', 'ignore')),
 				#"item_number":str(item_number.encode('ascii', 'ignore')),
 				"item_unit_price":float(item_unit_price),
@@ -71,9 +71,9 @@ def index():
 	#data = pd.read_sql('select count(*) as c from donorschoose_projects', g.db_engine)
 	#localization = pd.read_sql('select distinct school_county from donorschoose_projects', g.db_engine)
 	#localization = {"test":True}
-	return render_template('product.html', 
-				school_state=school_state, 
-				school_metro=school_metro, 
+	return render_template('product.html',
+				school_state=school_state,
+				school_metro=school_metro,
 				teacher_prefix=teacher_prefix,
 				primary_focus_subject=primary_focus_subject,
 				primary_focus_area=primary_focus_area,
