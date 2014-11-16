@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NAME="Donors Choose App"
+NAME="DonorsChooseApp"
 SOCKFILE=/home/ramesh/sock
 USER=ramesh
 GROUP=staff
@@ -20,4 +20,5 @@ exec gunicorn run:app -b 0.0.0.0:8000 \
   --workers $NUM_WORKERS \
   --user=$USER --group=$GROUP \
   --log-level=debug \
-  --bind=unix:$SOCKFILE
+
+#   --bind=unix:$SOCKFILE

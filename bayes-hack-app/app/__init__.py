@@ -37,7 +37,9 @@ def create_app(object_name, env):
             # g.db_engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
 
     # register our blueprints
-    from app.blueprints import main
+    from app.blueprints import main, product
     app.register_blueprint(main)
+    app.register_blueprint(product)
 
+    
     return app

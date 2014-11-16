@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block body %}
+  	<BR><BR>
+	<div class="col-lg-6">
+	    	<div class="form-group">
+				<label for="product">Product: </label>
+  				<input id="product" class="form-control" style="display:inline-block; width:60%">
+  				<button class="btn btn-default">Add Product</button>
+  				<label>Product List:</label>
+  				<div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Product Name</th>
+                                <th>Price</th>
+                                <th>Remove</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>Mark</td>
+                                <td>Otto</td>
+                                <td>X</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+  				<BR><BR><BR>
+	            
+	            <select class="form-control">
+	                {% for item in productlist %}
+		                <option value="{{item.value}}">{{item.label}}</option>
+	                {% endfor %}
+	            </select>
+	           	
+	            <button type="reset" class="btn btn-default">Reset</button>
+	        </div>
+		
+    </div>
+
+    <div id="viz"></div>
+{% endblock body %}
+
+{% block js %}
+	<script src="//code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
+
+  <script type="text/javascript">
+  // parse a spec and create a visualization view
+      $(function() {
+        	var availableTags = [
+		      "ActionScript",
+		      "AppleScript",
+		      "Asp",
+		      "BASIC",
+		      "C",
+		      "C++",
+		      "Clojure",
+		      "COBOL",
+		      "ColdFusion",
+		      "Erlang",
+		      "Fortran",
+		      "Groovy",
+		      "Haskell",
+		      "Java",
+		      "JavaScript",
+		      "Lisp",
+		      "Perl",
+		      "PHP",
+		      "Python",
+		      "Ruby",
+		      "Scala",
+		      "Scheme"
+		    ];
+		    $( "#product" ).autocomplete({
+		      source: availableTags
+		    });
+
+
+
+    });
+  </script>
+{% endblock js %}

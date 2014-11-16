@@ -1,9 +1,7 @@
 from app import create_app
 
 
-def run_app():
+if __name__ == '__main__':
     env = 'hack'
     app = create_app('app.settings.%sConfig' % env.capitalize(), env)
-    return app
-
-app = run_app()
+    app.run(host='0.0.0.0', port=8000, debug=True)
