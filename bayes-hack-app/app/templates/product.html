@@ -3,10 +3,19 @@
   	<BR><BR>
 	<div class="col-lg-6">
 	    	<div class="form-group">
+				
+				<label for="state">State </label>
+				<select id="state" class="form-control">
+	                {% for item in stateslist %}
+		                <option value="{{item.value}}">{{item.label}}</option>
+	                {% endfor %}
+	            </select>
+	            <BR><BR>
+
+
 				<label for="product">Product: </label>
   				<input id="product" class="form-control" style="display:inline-block; width:60%">
   				<button class="btn btn-default">Add Product</button>
-  				<label>Product List:</label>
   				<div class="table-responsive">
                     <table class="table">
                         <thead>
@@ -29,11 +38,7 @@
                 </div>
   				<BR><BR><BR>
 	            
-	            <select class="form-control">
-	                {% for item in productlist %}
-		                <option value="{{item.value}}">{{item.label}}</option>
-	                {% endfor %}
-	            </select>
+	            
 	           	
 	            <button type="reset" class="btn btn-default">Reset</button>
 	        </div>
