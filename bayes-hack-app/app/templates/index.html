@@ -1,16 +1,17 @@
 {% extends 'base.html' %}
 {% block body %}
-
-    <div id="viz"></div>
-    {{data_table | safe}}
+    <div class="row">
+      <div class="col-md-12">
+        <h2>Donors Choose App</h2>
+      </div>
+    </div>
+    <hr />
+    <div class="row">
+      <div class="col-md-12">
+        <ul>
+        <li>Select "Schools" to see a distribution of schools requesting funding</li>
+        <li>Select "Prodcts" to see how adding products affect the probability of projects to be funded</li>
+        </ul>
+      </div>
+    </div>
 {% endblock body %}
-
-{% block js %}
-  <script type="text/javascript">
-  // parse a spec and create a visualization view
-      $(function() {
-        chart_data = {{mpld3_data | safe}};
-        mpld3.draw_figure("viz", chart_data);
-    });
-  </script>
-{% endblock js %}
