@@ -27,6 +27,7 @@ def schools():
 
 @main.route('/funding-explore')
 def funding_explore():
-    mpld3_data = mpld3.fig_to_dict(funding_by_poverty_levels().get_figure())
+    # mpld3_data = mpld3.fig_to_dict(funding_by_poverty_levels().get_figure())
 
-    return render_template('funding_explore.html', mpld3_data=json.dumps(mpld3_data))
+    # return render_template('funding_explore.html', mpld3_data=json.dumps(mpld3_data))
+    return render_template('funding_completion.html')

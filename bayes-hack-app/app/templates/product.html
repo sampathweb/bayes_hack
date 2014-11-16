@@ -4,7 +4,14 @@
 	<h1 class="page-header">Funding prediction</h1>
 </div>
 <div class="row">
-	<div class="col-lg-6">
+	<div class="col-lg-8">
+		This tool is meant to help teachers estimate the chance of their projects getting funded, based on historical data. Adjust the parameters to match the project characteristics and the model will provide a score between 1 and 100. This score represents the % chance of your project being funded.<BR><BR>
+	</div>
+	<div class="col-lg-4">
+	</div>
+</div>
+<div class="row">
+	<div class="col-lg-8">
 	    	<div id="form-group" class="form-group">
 				
 
@@ -31,6 +38,15 @@
 					                {% endfor %}
 					            </select>
 			            	</div>
+			            	<div class="col-sm-12">
+				            	<BR>Poverty Level
+								<select id="poverty_level" class="form-control" style="display:inline-block; width:50%">
+								    <option value=""></option>
+									{% for item in poverty_level %}
+								        <option value="{{item.value}}">{{item.name}}</option>
+								    {% endfor %}
+								</select>
+							</div>
                         </div>
                 </div>
 				<div class="panel panel-default">
@@ -137,16 +153,11 @@
 			                    </table>
 			                    <BR><BR>
 			                </div>
+			                Total: $<span id="total_cost">0</span>
 	                   	</div>
                 </div>
 
-				<label>Poverty Level ??? </label>
-				<select id="poverty_level" class="form-control" style="display:inline-block; width:50%">
-		            <option value=""></option>
-					{% for item in poverty_level %}
-		                <option value="{{item.value}}">{{item.label}}</option>
-	                {% endfor %}
-	            </select><BR><BR>
+				
 
             
 				
@@ -154,23 +165,33 @@
 	        </div>
 		
     </div>
-    <div class="col-lg-6">
+    <div class="col-lg-4">
     	<div id="outcome">
 
     	</div>
+    	<div id="viz"></div>
     </div>
 </div>
-    <div id="viz"></div>
+    
 {% endblock body %}
 
 {% block js %}
 	<script src="//code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
-
+	<style>
+		#outcome.sticky {
+		     position: fixed;
+		     top: 10px;
+		  }
+	</style>
   <script type="text/javascript">
   // parse a spec and create a visualization view
       //var localization = {{ localization|safe }};
-      
+      var $window = $(window), $stickyEl = $('#outcome'), elTop = $stickyEl.offset().top;
+	   $window.scroll(function() {
+	        $stickyEl.toggleClass('sticky', $window.scrollTop() > (elTop - 10));
+	    });
+
       function delete_item(number) {
       	table_items.splice(number-1, 1);
       	$.each(table_items, function(id, entry) {
@@ -180,17 +201,21 @@
       }
       function refresh_table() {
       	$("#items_table").html("<thead><tr><th>#</th><th>Product Name</th><th>Price</th><th>Remove</th></tr></thead><tbody></tbody>");
+      	total_cost = 0;
       	$.each(table_items, function(id, item) {
+      		total_cost += item.price;
       		$("#items_table").append("<tr class='item'><td class='number'>" + item.number + "</td><td class='name'>" + item.name + "</td><td class='price'>$" + item.price + "</td><td class='remove'><a href='#' onclick='delete_item(" + item.number + ");'>X</a></td></tr>");
       	});
+      	$("#total_cost").html(total_cost);
+
       }
       function table_add_item() {
       	var added = false;
       	var product_name = $("#product").val();
       	console.log('add ', product_name, search_results);
       	$.each(search_results, function(id, item) {
-      		if (item.item_prefix == product_name && ! added) {
-      			table_items.push({"number": table_items.length + 1, "price":(item.item_quantity * item.item_unit_price), "name":item.item_name});
+      		if (item.item_name == product_name && ! added) {
+      			table_items.push({"number": table_items.length + 1, "price":(item.item_unit_price), "name":item.item_name});
       			refresh_table();
       			added = true;
       			$("#product").val('');
@@ -205,6 +230,8 @@
       var item_autocomplete = [];
       var search_results = [];
       var submit_data = {};
+      var total_cost = 0;
+      
       $(function() {
 		$("#product").autocomplete({ source: item_autocomplete });
 		$("#product").keypress(function(e) {
@@ -226,17 +253,30 @@
 			});
 		});
 
+		$(":input").each(function(id, item) { 
+			if (typeof $(item).attr('id') != 'undefined') {
+				//console.log(item, $(item).attr('id'))
+				var itemid = $(item).attr('id');
+				var value = $("#" + itemid).val() || $("#" + itemid).prop('checked');
+				if (typeof value == "undefined") value = "";
+				if (itemid != "product") submit_data[itemid] = value;
+			}
+		});
+
 		$("#form-group").on('change', function(e) {
 			
 			var value = $("#" + e.target.id).val() || $("#" + e.target.id).prop('checked');
 			console.log(e, e.target.id, value);
 			if (typeof value != "undefined" && value != "") {
 				submit_data[e.target.id] = value;
-			} else {
-				delete submit_data[e.target.id];
-			}
+			} //else {
+				//delete submit_data[e.target.id];
+			//}
 			console.log(submit_data);
-
+			submit_data["total_price_excluding_optional_support"] = total_cost;
+			//submit to model for prediction
+			//$("#outcome").html("<i class='fa fa-spinner fa-5x'></i>");
+			$("#outcome").html("<img width=300 height=300 src='/static/img/loading.gif'>");
 			$.post( "/check_prediction", submit_data)
 			  .done(function( data ) {
 			  	console.log('response', data);
@@ -245,10 +285,10 @@
 			  	if (data.res < 60) color = 'yellow';
 			  	if (data.res < 30) color = 'red';
 
-			  	$("#outcome").append("<div class='panel panel-" + color + "'><div class='panel-heading'><div class='row'><div class='col-xs-3'><i class='fa fa-shopping-cart fa-5x'></i></div>\
-                        <div class='col-xs-9 text-right'><div class='huge'>" + data.res + "</div><div>Chance of funding your project</div></div></div></div>\
+			  	$("#outcome").append("<div class='panel panel-" + color + "'><div class='panel-heading'><div class='row'><div class='col-xs-3'><i class='fa fa-question fa-5x'></i></div>\
+                        <div class='col-xs-9 text-right'><div class='huge'>" + data.res + "%</div><div>Chance of project getting funded</div></div></div></div>\
                         <a href='#'><div class='panel-footer'><span class='pull-left'>More...</span><span class='pull-right'><i class='fa fa-arrow-circle-right'></i></span><div class='clearfix'></div></div></a></div>")
-
+        		mpld3.draw_figure("viz", data.mpld3_data);
 			});
 		});
 	  });
