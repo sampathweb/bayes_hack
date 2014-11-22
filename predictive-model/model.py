@@ -77,7 +77,7 @@ binary_features = [
 # I/O
 ##############################
 
-def project_data(fn='opendata_projects.csv'):
+def project_data(fn='../../data/opendata_projects.csv'):
     return pd.read_csv(fn,
                        parse_dates=['date_expiration','date_thank_you_packet_mailed',
                                     'date_completed', 'date_posted'])
