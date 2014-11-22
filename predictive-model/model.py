@@ -231,13 +231,6 @@ def fit_model(xx,yy):
     model.fit(xx,yy)
     return model
 
-def make_ny_model(zz):
-    xx, yy, idx, enc, fwd, bkw = make_data_set(zz, 'NY')
-    model = skl.ensemble.RandomForestRegressor()
-    model.fit(xx,yy)
-    can(model, 'ny-model.pkl')
-    return model
-
 def make_ca_model(zz):
     xx, yy, idx, enc, fwd, bkw = make_data_set(zz, 'CA')
     print xx.shape
@@ -246,22 +239,3 @@ def make_ca_model(zz):
     can(model, 'ca-model.pkl')
     return model
 
-def make_tx_model(zz):    
-    xx, yy, idx, enc, fwd, bkw = make_data_set(zz, 'TX')
-    model = skl.ensemble.RandomForestRegressor()
-    model.fit(xx,yy)
-    can(model, 'tx-model.pkl')
-    return model
-
-def ramesh():
-    # This is done when the app is loaded, then persists for all web connections.
-    zz = project_data()
-    xx, yy, idx, enc, fwd, bkw = make_data_set(zz)
-
-    # This is the code to make an example
-    N = xx.shape[1]
-    example = np.zeros(N)    
-    idx = fwd('school_state', 'CA')
-    example[idx] = 1
-
-    
