@@ -19,10 +19,6 @@ import numpy as np
 import pandas as pd
 import pylab as pl
 
-import MySQLdb as mdb
-
-# con = mdb.connect('bayesimpact.soumet.com', 'root', 'bayeshack', 'bayes') #host, user, password, #database
-
 def can(obj, file, protocol=2):
     """More convenient syntax for pickle, intended for interactive use
 
