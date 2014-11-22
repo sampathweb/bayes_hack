@@ -1,3 +1,6 @@
+###
+# Feature importances spat out by the random forest model
+# 
 # total_price_excluding_optional_support | |  0.51
 # grade_level |  Grades PreK-2 |  0.022
 # grade_level | Grades 3-5 | 0.022
@@ -15,7 +18,6 @@ import sklearn as skl
 import numpy as np
 import pandas as pd
 import pylab as pl
-from mpl_toolkits.basemap import Basemap
 
 import MySQLdb as mdb
 
@@ -55,57 +57,6 @@ def uncan(file):
     if type(file) is str: f.close()
 
     return obj
-
-def query():
-    # Build sql query
-    cur = con.cursor()
-    query = "SELECT school_latitude,school_longitude FROM donorschoose_projects LIMIT 10" 
-    cur.execute(query)
-    lats, lons = [],[]
-    for lat,lon in cur:
-        lats.append(float(lat))
-        lons.append(float(lon))
-    return np.array(lats), np.array(lons)
-
-def make_map():
-    return Basemap(projection='merc', lat_0=40, lon_0=-110, resolution='l', 
-                   area_thresh=10000.0, 
-                   llcrnrlon=-179, urcrnrlon=-60, llcrnrlat=10, urcrnrlat=75)
-
-
-def draw_base_map(map):
-    pl.clf()
-    map.bluemarble()
-    map.drawcoastlines()
-    map.drawstates(color='green')
-    map.drawrivers(color='blue')
-    # map.drawparallels(range(-40,-30,1))
-    # map.drawmeridians(range(-70,-56,1))
-    # ax = pl.gca()
-    # pl.text(-0.15, 0.0,'lat=-40', transform=ax.transAxes)
-    # pl.text(-0.15, 1.0,'lat=-30', transform=ax.transAxes)
-    # pl.text(0.0, -0.1,'lon=-70', transform=ax.transAxes)
-    # pl.text(1.0, -0.1,'lon=-56', transform=ax.transAxes)
-
-def school_map(map, zz):
-    long, lat = zz[['school_longitude', 'school_latitude']].values.transpose()
-    pl.clf()
-    draw_base_map(map)
-    print long.shape
-    return lat, long
-    map.plot(long,lat, 'ro', latlon=True)
-
-    # aa = zz[['loc_lat', 'loc_long', 'loc_accuracy']].dropna(how='any')    
-    # aa = aa[aa.loc_accuracy!=0.0]
-    # low = aa[aa.loc_accuracy > 10**2.7]
-    # high = aa[aa.loc_accuracy < 10**2.7]
-    # low_long, low_lat = low[['loc_long', 'loc_lat']].values.transpose()
-    # high_long, high_lat = high[['loc_long', 'loc_lat']].values.transpose()
-    #map = make_really_small_map()
-    #draw_base_map(map)
-    #map.plot(low_long,low_lat, 'b,', latlon=True)
-    #map.plot(high_long,high_lat, 'r,', latlon=True)
-    
 
 def project_data(fn='opendata_projects.csv'):
     return pd.read_csv(fn,
