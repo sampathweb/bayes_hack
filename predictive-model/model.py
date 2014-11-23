@@ -1,4 +1,12 @@
 ###
+# What needs to be done?
+# - Load _all_ the data when doing featurization so we can train state
+#   by state w/o featurization problems
+# - Better featurization function -- Don't require web server to load all the data
+# - Better model -- logistic regression?
+#
+
+###
 # Feature importances spat out by the random forest model
 # 
 # total_price_excluding_optional_support | |  0.51
@@ -129,30 +137,6 @@ def make_ca_model(zz):
 ##############################
 # Featurization
 ##############################
-
-def cat2numerical(feature,nan_column=False):
-    """Explode one categorical feature into a multi-D vector."""
-    categories = set(feature)
-    if not nan_column:
-        categories = [cat for cat in categories if cat is not np.nan]
-    print len(categories), categories
-    new_features = []
-    for cat in categories:
-        col = pd.Series(np.zeros(len(feature)))
-        col[feature == cat] = 1
-        new_features.append(col)
-    return pd.DataFrame(new_features).T
-
-def discretize(col):
-    """Convert text labels into numerical values"""
-    col = np.asarray(col)
-    vals = sorted(list(set(col)))
-    result = np.ones(len(col), 'i')
-    result_dict = {}
-    for idx, val in enumerate(vals):
-        result[col==val] = idx
-        result_dict[idx] = val
-    return result, result_dict
 
 def pre_screen(zz, state='CA'):
     """Apply filters to data e.g. no NaNs, by state, etc"""
