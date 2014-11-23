@@ -143,18 +143,30 @@ def pre_screen(zz):
     """Apply filters to data e.g. no NaNs, by state, etc"""
     return zz[features].dropna(how='any').copy()
     
-def featureize(zz):
-    """Convert dataframe into arrays suitable for scikit learn
+def make_feature_transform_functions(the_categorical_features=None,
+                                     cat_labels=None, non_cat_labels=None,
+                                     enc=None, label_encoder=None):
+    """Make two functions that translate b/t feature names and columns
 
-    Input: dataframe from opendata_projects.csv
+    The idea here is that the web server should be able to call this
+    and get functions that tell it how to populate the feature vector
+    _without_ loading all the data.  In particular the web server
+    should be able to correctly map feature names to entries in the
+    feature vector based on the features, etc, that were used _when
+    that particular model was trained_.
 
-    Output: xx, encode, forward_transform, reverse_transform
+    Therefore when a model is trained, it will produce a scikit-learn
+    model suitable for pickling, _along with_ a dict that will be
+    passed to this function that will create the forward and reverse
+    transform functions.  That is to say that if we train a model, and
+    then update this source file to include/exclude more features, it
+    _will not_ mess up the feature mapping and make the model return
+    nonsense.
 
-    xx: a N_examples x N_features array suitable for use as input data
-    for scikit learn fit() functions
+    That's why this function takes features and categorical_features
+    as arguments, and doesn't rely on the module variables.
 
-    encode: a function that takes a dataframe and produces xx
-
+    Output: 
     forward_transform: a function that takes a feature name and (if
     applicable) a category name and returns the column of xx that
     corresponds to that feature.  Ex:
@@ -177,26 +189,10 @@ def featureize(zz):
     categorical column.
 
     """
-
-    def partial_encode(xx):
-        result = []
-        for ff in features:            
-            aa = xx[ff].values
-            if ff in binary_features:
-                result.append(np.where(aa=='t', 1, 0))
-            elif ff in categorical_features:                
-                result.append(label_encoder[ff].transform(aa))
-            else:
-                result.append(aa)
-        return np.array(result).transpose()
-
-    def encode(xx):        
-        return enc.transform(partial_encode(xx))
-    
     # define a function that does the forward mapping
     # given ff, lab (might be none)
     def forward_transform(ff, label=None):
-        if ff in categorical_features:
+        if ff in the_categorical_features:
             assert label is not None
             idx = cat_labels.index(ff)
             base = enc.feature_indices_[idx]
@@ -221,6 +217,41 @@ def featureize(zz):
             offset = col - enc.feature_indices_[-1]
             return non_cat_labels[offset], None
         return key, label
+
+    return forward_transform, reverse_transform
+
+def featureize(zz):
+    """Convert dataframe into arrays suitable for scikit learn
+
+    Input: dataframe from opendata_projects.csv
+
+    Output: xx, encode, forward_transform, reverse_transform
+
+    xx: a N_examples x N_features array suitable for use as input data
+    for scikit learn fit() functions
+
+    encode: a function that takes a dataframe and produces xx
+
+    Feature names are the column names in the data frame.  Category
+    names are taken from the unique set of values from a given
+    categorical column.
+
+    """
+
+    def partial_encode(xx):
+        result = []
+        for ff in features:
+            aa = xx[ff].values
+            if ff in binary_features:
+                result.append(np.where(aa=='t', 1, 0))
+            elif ff in categorical_features:
+                result.append(label_encoder[ff].transform(aa))
+            else:
+                result.append(aa)
+        return np.array(result).transpose()
+
+    def encode(xx):
+        return enc.transform(partial_encode(xx))
 
     # # Small arrays of features / categorical features, used for testing.
     # features = ['num', 'city', 'color', 'val']
@@ -247,8 +278,16 @@ def featureize(zz):
     xx_partial = partial_encode(zz)
     enc.fit(xx_partial)
     xx = enc.transform(xx_partial)
-        
-    return xx, encode, forward_transform, reverse_transform
+
+    # Ok, this function needs to see all the data to make the
+    # feature-to-column mapping.  But we don't want the web server to
+    # have to load all the data to re-make that mapping.  So capture
+    # enough info to recreate those functions without looking at the
+    # data.  Basically this is making a closure by hand.
+    the_dict = dict(the_categorical_features=categorical_features,
+                    enc=enc, label_encoder=label_encoder,
+                    cat_labels=cat_labels, non_cat_labels=non_cat_labels)
+    return xx, encode, the_dict
 
 ##############################
 # Utilities
