@@ -1,7 +1,5 @@
 ###
 # What needs to be done?
-# - Load _all_ the data when doing featurization so we can train state
-#   by state w/o featurization problems
 # - Better featurization function -- Don't require web server to load all the data
 # - Better model -- logistic regression?
 #
@@ -97,15 +95,13 @@ def project_data(fn='../../data/opendata_projects.csv'):
 # Construct full data sets
 ##############################
 
-def make_data_set(zz, state='CA'):
+def make_data_set(zz):
     """Convert dataframe to arrays suitable for scikit learn"""
     ww = pre_screen(zz)
-    # important to featureize _without_ restricting to state so that categorization happens correctly
     xx, enc, fwd, bkw = featureize(ww)
-    # now select by state
     
     yy_all = funded_or_not(zz)
-    # Pull out just the ones that are included 
+    # Pull out just the ones that are included in the inputs
     yy = yy_all.loc[ww.index]
     return xx.toarray(), yy.values.astype('i'), ww.index, enc, fwd, bkw
 
@@ -125,23 +121,27 @@ def fit_model(xx,yy):
     model.fit(xx,yy)
     return model
 
-def make_ca_model(zz):
+def make_state_model(zz, state='CA'):
     """Make and save model for California data for the web site."""
-    xx, yy, idx, enc, fwd, bkw = make_data_set(zz, 'CA')
-    print xx.shape
+    xx, yy, idx, enc, fwd, bkw = make_data_set(zz)
+
+    # Pull out the entries for the state just before fitting the model
+    col = fwd('school_state', state)
+    keep = np.nonzero(xx[:,col])
+    xx, yy, idx = xx[keep], yy[keep], idx[keep]
+
     model = skl.ensemble.RandomForestRegressor()
     model.fit(xx,yy)
-    can(model, 'ca-model.pkl')
+    can(model, 'model-%s.pkl' % state)
     return model
 
 ##############################
 # Featurization
 ##############################
 
-def pre_screen(zz, state='CA'):
+def pre_screen(zz):
     """Apply filters to data e.g. no NaNs, by state, etc"""
-    by_state = zz[zz.school_state==state]
-    return by_state[features].dropna(how='any').copy()
+    return zz[features].dropna(how='any').copy()
     
 def featureize(zz):
     """Convert dataframe into arrays suitable for scikit learn
