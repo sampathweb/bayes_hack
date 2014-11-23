@@ -24,6 +24,8 @@ import pylab as pl
 # what are their types?
 ##############################
 
+# All of the features available in opendata_projects.csv
+# The ones we're using are uncommented.
 features = [
     # categorical, lots of categories
     # u'_projectid', u'_teacher_acctid', u'_schoolid', u'school_ncesid',
@@ -51,7 +53,7 @@ features = [
     # u'funding_status', u'date_posted', u'date_completed', u'date_thank_you_packet_mailed', u'date_expiration'
 ]
 
-# These have some number of 
+# Categorical features
 categorical_features = [
     u'_projectid', u'_teacher_acctid', u'_schoolid', u'school_ncesid',
     u'school_city', u'school_state', u'school_zip', u'school_metro',
@@ -60,7 +62,7 @@ categorical_features = [
     u'secondary_focus_subject', u'secondary_focus_area', u'resource_type',
     u'poverty_level', u'grade_level',]
 
-# All of these are tf
+# True/false binary features
 binary_features = [
     u'school_charter', 
     u'school_magnet',
@@ -78,6 +80,7 @@ binary_features = [
 ##############################
 
 def project_data(fn='../../data/opendata_projects.csv'):
+    """Read projects.csv into a Pandas dataframe"""
     return pd.read_csv(fn,
                        parse_dates=['date_expiration','date_thank_you_packet_mailed',
                                     'date_completed', 'date_posted'])
@@ -87,6 +90,7 @@ def project_data(fn='../../data/opendata_projects.csv'):
 ##############################
 
 def make_data_set(zz, state='CA'):
+    """Convert dataframe to arrays suitable for scikit learn"""
     ww = pre_screen(zz)
     # important to featureize _without_ restricting to state so that categorization happens correctly
     xx, enc, fwd, bkw = featureize(ww)
@@ -108,11 +112,13 @@ def time_to_fund():
 ##############################
 
 def fit_model(xx,yy):
+    """Fit model given inputs xx and outputs yy"""
     model = skl.ensemble.RandomForestRegressor()
     model.fit(xx,yy)
     return model
 
 def make_ca_model(zz):
+    """Make and save model for California data for the web site."""
     xx, yy, idx, enc, fwd, bkw = make_data_set(zz, 'CA')
     print xx.shape
     model = skl.ensemble.RandomForestRegressor()
@@ -125,6 +131,7 @@ def make_ca_model(zz):
 ##############################
 
 def cat2numerical(feature,nan_column=False):
+    """Explode one categorical feature into a multi-D vector."""
     categories = set(feature)
     if not nan_column:
         categories = [cat for cat in categories if cat is not np.nan]
@@ -136,8 +143,8 @@ def cat2numerical(feature,nan_column=False):
         new_features.append(col)
     return pd.DataFrame(new_features).T
 
-# decision tree for funded vs. not funded
 def discretize(col):
+    """Convert text labels into numerical values"""
     col = np.asarray(col)
     vals = sorted(list(set(col)))
     result = np.ones(len(col), 'i')
@@ -148,10 +155,45 @@ def discretize(col):
     return result, result_dict
 
 def pre_screen(zz, state='CA'):
+    """Apply filters to data e.g. no NaNs, by state, etc"""
     by_state = zz[zz.school_state==state]
     return by_state[features].dropna(how='any').copy()
     
 def featureize(zz):
+    """Convert dataframe into arrays suitable for scikit learn
+
+    Input: dataframe from opendata_projects.csv
+
+    Output: xx, encode, forward_transform, reverse_transform
+
+    xx: a N_examples x N_features array suitable for use as input data
+    for scikit learn fit() functions
+
+    encode: a function that takes a dataframe and produces xx
+
+    forward_transform: a function that takes a feature name and (if
+    applicable) a category name and returns the column of xx that
+    corresponds to that feature.  Ex:
+
+    forward_transform('school_longitude') => 55
+    forward_transform('school_state', 'CA') => 3
+    forward_transform('school_state', 'NY') => 17
+
+    so x[:,3] will be nonzero if the school is in California
+
+    reverse_transform: a function that takes a column of xx and maps
+    it to a feature name and (if applicable) category name.  Ex:
+
+    reverse_transform(55) => ('school_longitude', None)
+    reverse_transform(3) => ('school_state', 'CA')
+    reverse_transform(17) => ('school_state', 'NY')
+
+    Feature names are the column names in the data frame.  Category
+    names are taken from the unique set of values from a given
+    categorical column.
+
+    """
+
     def partial_encode(xx):
         result = []
         for ff in features:            
@@ -196,8 +238,9 @@ def featureize(zz):
             return non_cat_labels[offset], None
         return key, label
 
-    #features = ['num', 'city', 'color', 'val']
-    #categorical_features = ['city', 'color']
+    # # Small arrays of features / categorical features, used for testing.
+    # features = ['num', 'city', 'color', 'val']
+    # categorical_features = ['city', 'color']
 
     # Take the desired features and drop any rows with missing values
     #zz = zz[features].dropna(how='any')
