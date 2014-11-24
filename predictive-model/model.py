@@ -81,6 +81,148 @@ binary_features = [
     u'eligible_double_your_impact_match',
     u'eligible_almost_home_match']
 
+class DonorsChooseEncoder(object):
+    """Convert dataframe into arrays suitable for scikit learn
+
+    Input: dataframe from opendata_projects.csv
+
+    Output: xx, encode, forward_transform, reverse_transform
+
+    xx: a N_examples x N_features array suitable for use as input data
+    for scikit learn fit() functions
+
+    encode: a function that takes a dataframe and produces xx
+
+    Feature names are the column names in the data frame.  Category
+    names are taken from the unique set of values from a given
+    categorical column.
+
+    """
+
+    """Make two functions that translate b/t feature names and columns
+
+    The idea here is that the web server should be able to call this
+    and get functions that tell it how to populate the feature vector
+    _without_ loading all the data.  In particular the web server
+    should be able to correctly map feature names to entries in the
+    feature vector based on the features, etc, that were used _when
+    that particular model was trained_.
+
+    Therefore when a model is trained, it will produce a scikit-learn
+    model suitable for pickling, _along with_ a dict that will be
+    passed to this function that will create the forward and reverse
+    transform functions.  That is to say that if we train a model, and
+    then update this source file to include/exclude more features, it
+    _will not_ mess up the feature mapping and make the model return
+    nonsense.
+
+    That's why this function takes features and categorical_features
+    as arguments, and doesn't rely on the module variables.
+
+    Output: 
+    forward_transform: a function that takes a feature name and (if
+    applicable) a category name and returns the column of xx that
+    corresponds to that feature.  Ex:
+
+    forward_transform('school_longitude') => 55
+    forward_transform('school_state', 'CA') => 3
+    forward_transform('school_state', 'NY') => 17
+
+    so x[:,3] will be nonzero if the school is in California
+
+    reverse_transform: a function that takes a column of xx and maps
+    it to a feature name and (if applicable) category name.  Ex:
+
+    reverse_transform(55) => ('school_longitude', None)
+    reverse_transform(3) => ('school_state', 'CA')
+    reverse_transform(17) => ('school_state', 'NY')
+
+    Feature names are the column names in the data frame.  Category
+    names are taken from the unique set of values from a given
+    categorical column.
+
+    """
+
+    def __init__(self, df):
+        # Capture module variables
+        self._features = features
+        self._categorical_features = categorical_features
+        self._binary_features = binary_features
+
+        # and construct the encoding
+        self._make_encoder(df)
+
+    def _make_encoder(self, df):
+        label_encoder = {}
+        non_cat_labels = []
+        cat_labels = []
+        cat_feature = []
+
+        for ff in self._features:
+            if ff in self._categorical_features:
+                label_encoder[ff] = skl.preprocessing.LabelEncoder()
+                label_encoder[ff].fit(df[ff].values)
+                cat_labels.append(ff)
+                cat_feature.append(True)
+            else:
+                non_cat_labels.append(ff)
+                cat_feature.append(False)
+
+        enc = skl.preprocessing.OneHotEncoder(categorical_features=cat_feature)
+
+        # Save what we need to save
+        self._enc = enc
+        self._label_encoder = label_encoder
+        self._cat_labels = cat_labels
+        self._non_cat_labels = non_cat_labels
+
+        # And do the final training of the encoder
+        xx_partial = self._partially_encode_dataframe(df)
+        enc.fit(xx_partial)
+        xx = enc.transform(xx_partial)
+        self.n_features = xx.shape[1]
+
+def reverse_transform(self, col):
+        assert col >=0
+        if col < self._enc.feature_indices_[-1]:
+            # categorical
+            idx = self._enc.feature_indices_.searchsorted(col,side='right')-1
+            base = self._enc.feature_indices_[idx]
+            offset = col - base 
+            feature = self._cat_labels[idx]
+            label = self._label_encoder[feature].inverse_transform(offset)
+            return feature, label
+        else:
+            offset = col - self._enc.feature_indices_[-1]
+            return self._non_cat_labels[offset], None
+        return key, label
+
+    def forward_transform(self, ff, label=None):
+        if ff in self._categorical_features:
+            assert label is not None
+            idx = self._cat_labels.index(ff)
+            base = self._enc.feature_indices_[idx]
+            offset = self._label_encoder[ff].transform(label)
+        else:
+            base = self._enc.feature_indices_[-1]
+            offset = self._non_cat_labels.index(ff)
+        return base + offset
+
+    def encode_dataframe(self, df):
+        return self._enc.transform(self._partially_encode_dataframe(df))
+
+    def _partially_encode_dataframe(self,xx):
+        result = []
+        for ff in self._features:
+            aa = xx[ff].values
+            if ff in self._binary_features:
+                result.append(np.where(aa=='t', 1, 0))
+            elif ff in self._categorical_features:
+                result.append(self._label_encoder[ff].transform(aa))
+            else:
+                result.append(aa)
+        return np.array(result).transpose()
+
 ##############################
 # I/O
 ##############################
@@ -90,7 +232,7 @@ def project_data(fn='../../data/opendata_projects.csv'):
     return pd.read_csv(fn,
                        parse_dates=['date_expiration','date_thank_you_packet_mailed',
                                     'date_completed', 'date_posted'])
-        
+
 ##############################
 # Construct full data sets
 ##############################
@@ -142,152 +284,6 @@ def make_state_model(zz, state='CA'):
 def pre_screen(zz):
     """Apply filters to data e.g. no NaNs, by state, etc"""
     return zz[features].dropna(how='any').copy()
-    
-def make_feature_transform_functions(the_categorical_features=None,
-                                     cat_labels=None, non_cat_labels=None,
-                                     enc=None, label_encoder=None):
-    """Make two functions that translate b/t feature names and columns
-
-    The idea here is that the web server should be able to call this
-    and get functions that tell it how to populate the feature vector
-    _without_ loading all the data.  In particular the web server
-    should be able to correctly map feature names to entries in the
-    feature vector based on the features, etc, that were used _when
-    that particular model was trained_.
-
-    Therefore when a model is trained, it will produce a scikit-learn
-    model suitable for pickling, _along with_ a dict that will be
-    passed to this function that will create the forward and reverse
-    transform functions.  That is to say that if we train a model, and
-    then update this source file to include/exclude more features, it
-    _will not_ mess up the feature mapping and make the model return
-    nonsense.
-
-    That's why this function takes features and categorical_features
-    as arguments, and doesn't rely on the module variables.
-
-    Output: 
-    forward_transform: a function that takes a feature name and (if
-    applicable) a category name and returns the column of xx that
-    corresponds to that feature.  Ex:
-
-    forward_transform('school_longitude') => 55
-    forward_transform('school_state', 'CA') => 3
-    forward_transform('school_state', 'NY') => 17
-
-    so x[:,3] will be nonzero if the school is in California
-
-    reverse_transform: a function that takes a column of xx and maps
-    it to a feature name and (if applicable) category name.  Ex:
-
-    reverse_transform(55) => ('school_longitude', None)
-    reverse_transform(3) => ('school_state', 'CA')
-    reverse_transform(17) => ('school_state', 'NY')
-
-    Feature names are the column names in the data frame.  Category
-    names are taken from the unique set of values from a given
-    categorical column.
-
-    """
-    # define a function that does the forward mapping
-    # given ff, lab (might be none)
-    def forward_transform(ff, label=None):
-        if ff in the_categorical_features:
-            assert label is not None
-            idx = cat_labels.index(ff)
-            base = enc.feature_indices_[idx]
-            offset = label_encoder[ff].transform(label)
-        else:
-            base = enc.feature_indices_[-1]
-            offset = non_cat_labels.index(ff)
-        return base + offset
-
-    # define a function that does the reverse mapping
-    def reverse_transform(col):
-        assert col >=0
-        if col < enc.feature_indices_[-1]:
-            # categorical
-            idx = enc.feature_indices_.searchsorted(col,side='right')-1
-            base = enc.feature_indices_[idx]
-            offset = col - base 
-            feature = cat_labels[idx]
-            label = label_encoder[feature].inverse_transform(offset)
-            return feature, label
-        else:
-            offset = col - enc.feature_indices_[-1]
-            return non_cat_labels[offset], None
-        return key, label
-
-    return forward_transform, reverse_transform
-
-def featureize(zz):
-    """Convert dataframe into arrays suitable for scikit learn
-
-    Input: dataframe from opendata_projects.csv
-
-    Output: xx, encode, forward_transform, reverse_transform
-
-    xx: a N_examples x N_features array suitable for use as input data
-    for scikit learn fit() functions
-
-    encode: a function that takes a dataframe and produces xx
-
-    Feature names are the column names in the data frame.  Category
-    names are taken from the unique set of values from a given
-    categorical column.
-
-    """
-
-    def partial_encode(xx):
-        result = []
-        for ff in features:
-            aa = xx[ff].values
-            if ff in binary_features:
-                result.append(np.where(aa=='t', 1, 0))
-            elif ff in categorical_features:
-                result.append(label_encoder[ff].transform(aa))
-            else:
-                result.append(aa)
-        return np.array(result).transpose()
-
-    def encode(xx):
-        return enc.transform(partial_encode(xx))
-
-    # # Small arrays of features / categorical features, used for testing.
-    # features = ['num', 'city', 'color', 'val']
-    # categorical_features = ['city', 'color']
-
-    # Take the desired features and drop any rows with missing values
-    #zz = zz[features].dropna(how='any')
-    
-    label_encoder = {}
-    non_cat_labels = []
-    cat_labels = []
-    cat_feature = []
-    for ff in features:            
-        if ff in categorical_features:
-            label_encoder[ff] = skl.preprocessing.LabelEncoder()
-            label_encoder[ff].fit(zz[ff].values)
-            cat_labels.append(ff)
-            cat_feature.append(True)
-        else:
-            non_cat_labels.append(ff)
-            cat_feature.append(False)
-
-    enc = skl.preprocessing.OneHotEncoder(categorical_features=cat_feature)    
-    xx_partial = partial_encode(zz)
-    enc.fit(xx_partial)
-    xx = enc.transform(xx_partial)
-
-    # Ok, this function needs to see all the data to make the
-    # feature-to-column mapping.  But we don't want the web server to
-    # have to load all the data to re-make that mapping.  So capture
-    # enough info to recreate those functions without looking at the
-    # data.  Basically this is making a closure by hand.
-    the_dict = dict(the_categorical_features=categorical_features,
-                    enc=enc, label_encoder=label_encoder,
-                    cat_labels=cat_labels, non_cat_labels=non_cat_labels)
-    return xx, encode, the_dict
 
 ##############################
 # Utilities
