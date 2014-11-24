@@ -284,29 +284,41 @@ def fit_model(xx,yy):
     model.fit(xx,yy)
     return model
 
-def make_state_model(zz, state='CA'):
-    """Make and save model for California data for the web site."""    
-
-    xx, yy, idx, encoder = make_data_set(zz)
+def make_state_model(xx, yy, idx, encoder, state=None, prefix='model'):
+    """Make and save model, possibly for a single state"""
 
     # Pull out the entries for the state just before fitting the model
-    col = encoder.forward_transform('school_state', state)
-    keep = np.nonzero(xx[:,col])
-    xx, yy, idx = xx[keep], yy[keep], idx[keep]
+    if state is not None:
+        col = encoder.forward_transform('school_state', state)
+        keep = np.nonzero(xx[:,col])
+        xx, yy, idx = xx[keep], yy[keep], idx[keep]
 
-    model = skl.ensemble.RandomForestRegressor()
-    model.fit(xx,yy)
+    model = fit_model(xx,yy)
+    return model, encoder
+
+def make_model_from_scratch():
+    zz = project_data()
+    xx, yy, idx, encoder = make_data_set(zz)
+    model, encoder = make_state_model(xx, yy, idx, encoder, state='CA'):
+
+    if state is not None:
+        filename = '%s-%s.pkl' % (prefix, state)
+    else:
+        filename = '%s.pkl' % prefix
 
     # Could use the same encoder for multiple models, but reduce the
     # possibility of screw-ups, always store the model and encoder
     # together.
-    can((model, encoder), 'model-%s.pkl' % state) 
-    return model, encoder
+    can((model, encoder), filename)
 
-def use_state_model(state='CA'):
+def use_model(state='CA'):
     """Example code to load and use a state model"""
     # This happens _once_ when the web server is started
-    model, encoder = uncan('model-%s.pkl' % state) 
+    if state is not None:
+        filename = '%s-%s.pkl' % (prefix, state)
+    else:
+        filename = '%s.pkl' % prefix
+    model, encoder = uncan(filename)
 
     # This happens when the web server responds to a request
     request = dict(school_state='CA',
