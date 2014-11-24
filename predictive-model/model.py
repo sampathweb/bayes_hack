@@ -82,68 +82,36 @@ binary_features = [
     u'eligible_almost_home_match']
 
 class DonorsChooseEncoder(object):
-    """Convert dataframe into arrays suitable for scikit learn
+    """Object that transforms between dataframes/dicts and feature vectors
 
-    Input: dataframe from opendata_projects.csv
+    The web server should be able to unpickle this object and use it
+    to populate the feature vector _without_ loading all the data.  In
+    particular the web server should be able to correctly map feature
+    names to entries in the feature vector based on the features, etc,
+    that were used _when that particular model was trained_.
 
-    Output: xx, encode, forward_transform, reverse_transform
-
-    xx: a N_examples x N_features array suitable for use as input data
-    for scikit learn fit() functions
-
-    encode: a function that takes a dataframe and produces xx
-
-    Feature names are the column names in the data frame.  Category
-    names are taken from the unique set of values from a given
-    categorical column.
-
-    """
-
-    """Make two functions that translate b/t feature names and columns
-
-    The idea here is that the web server should be able to call this
-    and get functions that tell it how to populate the feature vector
-    _without_ loading all the data.  In particular the web server
-    should be able to correctly map feature names to entries in the
-    feature vector based on the features, etc, that were used _when
-    that particular model was trained_.
-
-    Therefore when a model is trained, it will produce a scikit-learn
-    model suitable for pickling, _along with_ a dict that will be
-    passed to this function that will create the forward and reverse
-    transform functions.  That is to say that if we train a model, and
+    Therefore when a model is trained, one should pickle both the
+    model and this feature encoder.  Then if we train a model, and
     then update this source file to include/exclude more features, it
     _will not_ mess up the feature mapping and make the model return
     nonsense.
 
-    That's why this function takes features and categorical_features
-    as arguments, and doesn't rely on the module variables.
-
-    Output: 
-    forward_transform: a function that takes a feature name and (if
-    applicable) a category name and returns the column of xx that
-    corresponds to that feature.  Ex:
-
-    forward_transform('school_longitude') => 55
-    forward_transform('school_state', 'CA') => 3
-    forward_transform('school_state', 'NY') => 17
-
-    so x[:,3] will be nonzero if the school is in California
-
-    reverse_transform: a function that takes a column of xx and maps
-    it to a feature name and (if applicable) category name.  Ex:
-
-    reverse_transform(55) => ('school_longitude', None)
-    reverse_transform(3) => ('school_state', 'CA')
-    reverse_transform(17) => ('school_state', 'NY')
-
-    Feature names are the column names in the data frame.  Category
-    names are taken from the unique set of values from a given
-    categorical column.
-
     """
 
     def __init__(self, df):
+        """Make a feature encoder based on a dataframe
+
+        Given a list of features, categorical features, and binary
+        (true/false) features, make a set of feature vectors suitable
+        for ingestion into scikit learn.  Ie, categorical features are
+        exploded into n-dimensional vectors, one dimension for each
+        label, etc.
+
+        Feature names are the column names in the data frame.  Category
+        names are taken from the unique set of values from a given
+        categorical column.
+
+        """
         # Capture module variables
         self._features = features
         self._categorical_features = categorical_features
@@ -153,6 +121,8 @@ class DonorsChooseEncoder(object):
         self._make_encoder(df)
 
     def _make_encoder(self, df):
+        """Convert dataframe into arrays suitable for scikit learn"""
+
         label_encoder = {}
         non_cat_labels = []
         cat_labels = []
@@ -182,7 +152,19 @@ class DonorsChooseEncoder(object):
         xx = enc.transform(xx_partial)
         self.n_features = xx.shape[1]
 
-def reverse_transform(self, col):
+    def reverse_transform(self, col):
+        """Turn a column index into a feature/category name
+
+        reverse_transform(55) => ('school_longitude', None)
+        reverse_transform(3) => ('school_state', 'CA')
+        reverse_transform(17) => ('school_state', 'NY')
+
+        Feature names are the column names in the data frame.
+        Category names are taken from the unique set of values from a
+        given categorical column.
+
+        """
+
         assert col >=0
         if col < self._enc.feature_indices_[-1]:
             # categorical
@@ -198,6 +180,17 @@ def reverse_transform(self, col):
         return key, label
 
     def forward_transform(self, ff, label=None):
+        """Turn feature/category names into a column index
+
+        forward_transform('school_longitude') => 55
+        forward_transform('school_state', 'CA') => 3
+        forward_transform('school_state', 'NY') => 17
+
+        so in the feature matrix x[:,3] will be nonzero if the school
+        is in California
+
+        """
+
         if ff in self._categorical_features:
             assert label is not None
             idx = self._cat_labels.index(ff)
@@ -209,9 +202,11 @@ def reverse_transform(self, col):
         return base + offset
 
     def encode_dataframe(self, df):
+        """Turn a dataframe into a feature vector"""
         return self._enc.transform(self._partially_encode_dataframe(df))
 
     def _partially_encode_dataframe(self,xx):
+        """Encode text labels into numerical values"""
         result = []
         for ff in self._features:
             aa = xx[ff].values
