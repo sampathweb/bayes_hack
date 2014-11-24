@@ -235,12 +235,13 @@ def project_data(fn='../../data/opendata_projects.csv'):
 def make_data_set(zz):
     """Convert dataframe to arrays suitable for scikit learn"""
     ww = pre_screen(zz)
-    xx, enc, fwd, bkw = featureize(ww)
+    encoder = DonorsChooseEncoder(zz)
+    xx = encoder.encode_dataframe(ww)
     
     yy_all = funded_or_not(zz)
     # Pull out just the ones that are included in the inputs
     yy = yy_all.loc[ww.index]
-    return xx.toarray(), yy.values.astype('i'), ww.index, enc, fwd, bkw
+    return xx.toarray(), yy.values.astype('i'), ww.index, encoder
 
 def funded_or_not(zz):
     return pd.isnull(zz.date_completed-zz.date_posted)
@@ -260,16 +261,21 @@ def fit_model(xx,yy):
 
 def make_state_model(zz, state='CA'):
     """Make and save model for California data for the web site."""    
-    xx, yy, idx, enc, fwd, bkw = make_data_set(zz)
+
+    xx, yy, idx, encoder = make_data_set(zz)
 
     # Pull out the entries for the state just before fitting the model
-    col = fwd('school_state', state)
+    col = encoder.forward_transform('school_state', state)
     keep = np.nonzero(xx[:,col])
     xx, yy, idx = xx[keep], yy[keep], idx[keep]
 
     model = skl.ensemble.RandomForestRegressor()
     model.fit(xx,yy)
-    can(model, 'model-%s.pkl' % state)
+
+    # Could use the same encoder for multiple models, but reduce the
+    # possibility of screw-ups, always store the model and encoder
+    # together.
+    can((model, encoder), 'model-%s.pkl' % state) 
     return model
 
 ##############################
