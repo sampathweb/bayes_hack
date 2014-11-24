@@ -1,6 +1,5 @@
 ###
 # What needs to be done?
-# - Better featurization function -- Don't require web server to load all the data
 # - Better model -- logistic regression?
 #
 
@@ -255,7 +254,12 @@ def project_data(fn='../../data/opendata_projects.csv'):
 
 def make_data_set(zz):
     """Convert dataframe to arrays suitable for scikit learn"""
-    ww = pre_screen(zz)
+    # Don't seem to actually need pre-screening that removes entries
+    # with NaNs.  Leave the logic to get the input and output vectors
+    # to line up correctly, though, in case it's needed down the line.
+    #
+    # ww = pre_screen(zz)
+    ww = zz
     encoder = DonorsChooseEncoder(zz)
     xx = encoder.encode_dataframe(ww)
     
