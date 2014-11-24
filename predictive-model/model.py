@@ -203,7 +203,7 @@ class DonorsChooseEncoder(object):
 
     def encode_dataframe(self, df):
         """Turn a dataframe into a feature vector"""
-        return self._enc.transform(self._partially_encode_dataframe(df))
+        return self._encoder.transform(self._partially_encode_dataframe(df))
 
     def _partially_encode_dataframe(self,xx):
         """Encode text labels into numerical values"""
