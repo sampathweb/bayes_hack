@@ -138,18 +138,18 @@ class DonorsChooseEncoder(object):
                 non_cat_labels.append(ff)
                 cat_feature.append(False)
 
-        enc = skl.preprocessing.OneHotEncoder(categorical_features=cat_feature)
+        encoder = skl.preprocessing.OneHotEncoder(categorical_features=cat_feature)
 
         # Save what we need to save
-        self._enc = enc
+        self._encoder = encoder
         self._label_encoder = label_encoder
         self._cat_labels = cat_labels
         self._non_cat_labels = non_cat_labels
 
         # And do the final training of the encoder
         xx_partial = self._partially_encode_dataframe(df)
-        enc.fit(xx_partial)
-        xx = enc.transform(xx_partial)
+        encoder.fit(xx_partial)
+        xx = encoder.transform(xx_partial)
         self.n_features = xx.shape[1]
 
     def reverse_transform(self, col):
@@ -166,16 +166,16 @@ class DonorsChooseEncoder(object):
         """
 
         assert col >=0
-        if col < self._enc.feature_indices_[-1]:
+        if col < self._encoder.feature_indices_[-1]:
             # categorical
-            idx = self._enc.feature_indices_.searchsorted(col,side='right')-1
-            base = self._enc.feature_indices_[idx]
+            idx = self._encoder.feature_indices_.searchsorted(col,side='right')-1
+            base = self._encoder.feature_indices_[idx]
             offset = col - base 
             feature = self._cat_labels[idx]
             label = self._label_encoder[feature].inverse_transform(offset)
             return feature, label
         else:
-            offset = col - self._enc.feature_indices_[-1]
+            offset = col - self._encoder.feature_indices_[-1]
             return self._non_cat_labels[offset], None
         return key, label
 
@@ -194,10 +194,10 @@ class DonorsChooseEncoder(object):
         if ff in self._categorical_features:
             assert label is not None
             idx = self._cat_labels.index(ff)
-            base = self._enc.feature_indices_[idx]
+            base = self._encoder.feature_indices_[idx]
             offset = self._label_encoder[ff].transform(label)
         else:
-            base = self._enc.feature_indices_[-1]
+            base = self._encoder.feature_indices_[-1]
             offset = self._non_cat_labels.index(ff)
         return base + offset
 
@@ -259,7 +259,7 @@ def fit_model(xx,yy):
     return model
 
 def make_state_model(zz, state='CA'):
-    """Make and save model for California data for the web site."""
+    """Make and save model for California data for the web site."""    
     xx, yy, idx, enc, fwd, bkw = make_data_set(zz)
 
     # Pull out the entries for the state just before fitting the model
