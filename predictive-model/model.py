@@ -286,7 +286,7 @@ def fit_model(xx,yy):
     model.fit(xx,yy)
     return model
 
-def make_state_model(xx, yy, idx, encoder, state=None, prefix='model'):
+def make_model(xx, yy, idx, encoder, state=None, prefix='model'):
     """Make and save model, possibly for a single state"""
 
     # Pull out the entries for the state just before fitting the model
@@ -301,7 +301,7 @@ def make_state_model(xx, yy, idx, encoder, state=None, prefix='model'):
 def make_model_from_scratch():
     zz = project_data()
     xx, yy, idx, encoder = make_data_set(zz)
-    model, encoder = make_state_model(xx, yy, idx, encoder, state='CA'):
+    model, encoder = make_model(xx, yy, idx, encoder, state='CA'):
 
     if state is not None:
         filename = '%s-%s.pkl' % (prefix, state)
