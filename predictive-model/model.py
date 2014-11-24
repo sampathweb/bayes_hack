@@ -81,6 +81,45 @@ binary_features = [
     u'eligible_double_your_impact_match',
     u'eligible_almost_home_match']
 
+##############################
+# Example code to fit and use a model
+##############################
+
+def make_model_from_scratch():
+    zz = project_data()
+    xx, yy, idx, encoder = make_data_set(zz)
+    model, encoder = make_model(xx, yy, idx, encoder, state='CA'):
+
+    if state is not None:
+        filename = '%s-%s.pkl' % (prefix, state)
+    else:
+        filename = '%s.pkl' % prefix
+
+    # Could use the same encoder for multiple models, but reduce the
+    # possibility of screw-ups, always store the model and encoder
+    # together.
+    can((model, encoder), filename)
+
+def use_model(state='CA'):
+    """Example code to load and use a state model"""
+    # This happens _once_ when the web server is started
+    if state is not None:
+        filename = '%s-%s.pkl' % (prefix, state)
+    else:
+        filename = '%s.pkl' % prefix
+    model, encoder = uncan(filename)
+
+    # This happens when the web server responds to a request
+    request = dict(school_state='CA',
+                   school_charter=True,
+                   total_price_excluding_optional_support=11.1)
+    vv = encoder.encode_dict(request)
+    return model.predict(vv)
+
+##############################
+# Featurization
+##############################
+
 class DonorsChooseEncoder(object):
     """Object that transforms between dataframes/dicts and feature vectors
 
@@ -275,6 +314,10 @@ def funded_or_not(zz):
 def time_to_fund():
     return pd.isnull(zz.date_completed-zz.date_posted)
 
+def pre_screen(zz):
+    """Apply filters to data e.g. no NaNs, by state, etc"""
+    return zz[features].dropna(how='any').copy()
+
 ##############################
 # Model Fitting
 ##############################
@@ -297,45 +340,6 @@ def make_model(xx, yy, idx, encoder, state=None, prefix='model'):
 
     model = fit_model(xx,yy)
     return model, encoder
-
-def make_model_from_scratch():
-    zz = project_data()
-    xx, yy, idx, encoder = make_data_set(zz)
-    model, encoder = make_model(xx, yy, idx, encoder, state='CA'):
-
-    if state is not None:
-        filename = '%s-%s.pkl' % (prefix, state)
-    else:
-        filename = '%s.pkl' % prefix
-
-    # Could use the same encoder for multiple models, but reduce the
-    # possibility of screw-ups, always store the model and encoder
-    # together.
-    can((model, encoder), filename)
-
-def use_model(state='CA'):
-    """Example code to load and use a state model"""
-    # This happens _once_ when the web server is started
-    if state is not None:
-        filename = '%s-%s.pkl' % (prefix, state)
-    else:
-        filename = '%s.pkl' % prefix
-    model, encoder = uncan(filename)
-
-    # This happens when the web server responds to a request
-    request = dict(school_state='CA',
-                   school_charter=True,
-                   total_price_excluding_optional_support=11.1)
-    vv = encoder.encode_dict(request)
-    return model.predict(vv)
-
-##############################
-# Featurization
-##############################
-
-def pre_screen(zz):
-    """Apply filters to data e.g. no NaNs, by state, etc"""
-    return zz[features].dropna(how='any').copy()
 
 ##############################
 # Utilities
