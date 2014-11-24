@@ -218,6 +218,27 @@ class DonorsChooseEncoder(object):
                 result.append(aa)
         return np.array(result).transpose()
 
+    def encode_dict(self, dd):
+        """Turn a dict into a feature vector
+
+        This does _no_ error checking (ie, ensuring that _some_ value
+        is specified for each feature
+
+        """
+        vv = np.zeros(self.n_features)
+        for kk in dd.keys():
+            idx = self.forward_transform(kk, dd[kk])
+            if kk in self._binary_features:
+                if dd[kk]:
+                    vv[idx] = 1.0
+                else:
+                    vv[idx] = 0.0
+            elif kk in self._categorical_features:
+                vv[idx] = 1.0
+            else:
+                vv[idx] = dd[kk]
+        return vv
+
 ##############################
 # I/O
 ##############################
