@@ -299,6 +299,19 @@ def make_state_model(zz, state='CA'):
     can((model, encoder), 'model-%s.pkl' % state) 
     return model
 
+
+def use_state_model(state='CA'):
+    """Example code to load and use a state model"""
+    # This happens _once_ when the web server is started
+    model, encoder = uncan('model-%s.pkl' % state) 
+
+    # This happens when the web server responds to a request
+    request = dict(school_state='CA',
+                   school_charter=True,
+                   total_price_excluding_optional_support=11.1)
+    vv = encoder.encode_dict(request)
+    return model.predict(vv)
+
 ##############################
 # Featurization
 ##############################
