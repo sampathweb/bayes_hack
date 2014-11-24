@@ -301,8 +301,7 @@ def make_state_model(zz, state='CA'):
     # possibility of screw-ups, always store the model and encoder
     # together.
     can((model, encoder), 'model-%s.pkl' % state) 
-    return model
-
+    return model, encoder
 
 def use_state_model(state='CA'):
     """Example code to load and use a state model"""
