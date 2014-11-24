@@ -19,6 +19,7 @@
 
 import cPickle
 import sklearn.ensemble
+import sklearn.linear_model
 import sklearn as skl
 import numpy as np
 import pandas as pd
@@ -280,7 +281,8 @@ def time_to_fund():
 
 def fit_model(xx,yy):
     """Fit model given inputs xx and outputs yy"""
-    model = skl.ensemble.RandomForestRegressor()
+    model = skl.linear_model.LogisticRegression()
+    #model = skl.ensemble.RandomForestRegressor()
     model.fit(xx,yy)
     return model
 
