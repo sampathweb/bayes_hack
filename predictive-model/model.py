@@ -341,6 +341,53 @@ def make_model(xx, yy, idx, encoder, state=None, prefix='model'):
     model = fit_model(xx,yy)
     return model, encoder
 
+def cv_regularization_plot(xx,yy,idx,encoder,state='CA'):
+    """Plot accuracy vs. regularization parameter
+
+    Return the best value of the regularization parameter.
+
+    """
+
+    # Looking at this plot for logistic regression, there's _no_
+    # improvement over always predicting zero as a function of
+    # regularization parameter.  So logistic regression isn't working.
+    #
+    # Decision trees with 100 trees (to give 1% precision when you ask
+    # for a probability estimate) gives an accuracy of 99.3 percent,
+    # but the model is 600 MB just for CA.  The out-of-bag accuracy
+    # estimate is 65%, ie, it's not doing better than the baseline
+    # either, it's just overfitting.
+    #
+    # Next try is ksvm
+    # This takes 20s on 10k samples, so it's not going to cut it.
+
+    # Just look at the data state-by-state for interactive-ish run-times
+    if state is not None:
+        col = encoder.forward_transform('school_state', state)
+        keep = np.nonzero(xx[:,col])
+        xx, yy, idx = xx[keep], yy[keep], idx[keep]
+
+    model = skl.linear_model.LogisticRegression()
+    options = dict(C=np.logspace(-6,6,13))
+    gs = skl.grid_search.GridSearchCV(model, options, scoring='accuracy')
+    gs.fit(xx,yy)
+
+    # Pull data
+    cc = [el[0]['C'] for el in gs.grid_scores_]
+    score = [100*np.mean(el[2]) for el in gs.grid_scores_]
+    score_uncertainty = [100*np.std(el[2]) for el in gs.grid_scores_]
+
+    # Draw the plot
+    pl.clf()
+    pl.errorbar(cc, score, score_uncertainty)
+    pl.xscale('log')
+    pl.xlabel('(high)     Regularization (C)     (low)')
+    pl.ylabel('Accuracy (%)')
+    pl.ylim(0,100)
+
+    # return the best value of the regularization parameter
+    return gs.best_params_['C']
+
 ##############################
 # Utilities
 ##############################
