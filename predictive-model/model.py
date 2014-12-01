@@ -85,10 +85,10 @@ binary_features = [
 # Example code to fit and use a model
 ##############################
 
-def make_model_from_scratch():
+def make_model_from_scratch(state=None, prefix='model'):
     zz = project_data()
     xx, yy, idx, encoder = make_data_set(zz)
-    model, encoder = make_model(xx, yy, idx, encoder, state='CA')
+    model, encoder = make_model(xx, yy, idx, encoder, state=state)
 
     if state is not None:
         filename = '%s-%s.pkl' % (prefix, state)
@@ -100,7 +100,7 @@ def make_model_from_scratch():
     # together.
     can((model, encoder), filename)
 
-def use_model(state='CA'):
+def use_model(state=None, prefix='model'):
     """Example code to load and use a state model"""
     # This happens _once_ when the web server is started
     if state is not None:
@@ -114,7 +114,11 @@ def use_model(state='CA'):
                    school_charter=True,
                    total_price_excluding_optional_support=11.1)
     vv = encoder.encode_dict(request)
-    return model.predict(vv)
+    all_probabilities = model.predict_proba(vv)
+    prob_funded = all_probabilities[0][1]
+    # This is a number b/t zero and one representing the probability
+    # that the given project will be funded.
+    return prob_funded
 
 ##############################
 # Featurization
